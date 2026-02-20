@@ -1,106 +1,114 @@
-<script>
-    let POINT_LIMIT = parseInt(localStorage.getItem('POINT_LIMIT')) || 5;
-    let GAME_LIMIT = parseInt(localStorage.getItem('GAME_LIMIT')) || 4;
-    let ANGRY_MODE = localStorage.getItem('ANGRY_MODE') === null ? true : localStorage.getItem('ANGRY_MODE') === 'true';
-    
-    let stats = { A: { score: 0, games: 0 }, B: { score: 0, games: 0 } };
-
-    // --- KEYBOARD SHORTCUTS ---
-    window.onkeydown = (e) => {
-        // If you are typing in a name box, don't trigger the score
-        if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
-
-        if (e.key === "1") {
-            addA(1);
-        } else if (e.key === "2") {
-            addB(1);
-        } else if (e.code === "ArrowLeft") {
-            addA(1);
-        } else if (e.code === "ArrowRight") {
-            addB(1);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Tracker Ultra Pro - Keyboard Fix</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px; overflow-x: hidden;
         }
-    };
 
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    let parts = [];
+        #game-container {
+            background: white; border-radius: 20px; padding: 15px; margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 830px;
+        }
 
-    function animate() {
-        ctx.clearRect(0,0, canvas.width, canvas.height);
-        parts.forEach((p, i) => {
-            p.y += p.vy; p.x += Math.sin(p.wobble) * 2; p.wobble += 0.1;
-            p.vy += 0.2; p.l -= 0.008;
-            ctx.globalAlpha = p.l; ctx.fillStyle = p.c;
-            ctx.fillRect(p.x, p.y, p.w, p.h);
-            if(p.l <= 0) parts.splice(i, 1);
-        });
-        requestAnimationFrame(animate);
-    }
-    window.onresize = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
-    window.onresize(); animate();
+        iframe { border-radius: 10px; background: #000; }
 
-    function showCelebration(name, mode) {
-        const lowerName = name.toLowerCase().trim();
-        const isRoast = lowerName === 'ragav' || (ANGRY_MODE && !['connor', 'mebo'].includes(lowerName));
-        const overlay = document.getElementById('overlay');
-        overlay.style.display = 'flex';
-        document.getElementById('winMessage').textContent = mode === 'game' ? "GAME WON!" : "CHAMPIONSHIP!";
-        document.getElementById('champName').textContent = name;
-        document.getElementById('roast').style.display = isRoast ? 'block' : 'none';
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 2000;
+            color: white; pointer-events: none; text-align: center;
+        }
+
+        .win-text { font-size: 60px; font-weight: 900; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .champ-tilt { font-size: 80px; color: #fdbb2d; animation: tilt 0.5s infinite alternate ease-in-out; }
+
+        @keyframes tilt {
+            0% { transform: rotate(-8deg) scale(1); }
+            100% { transform: rotate(8deg) scale(1.1); }
+        }
+
+        .wimpy-text { font-size: 25px !important; animation: none !important; color: #888 !important; }
+        .roast-text { font-size: 22px; font-style: italic; color: #ff4757; margin-top: 15px; display: none; font-weight: bold; }
+
+        canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1999; }
+
+        .container {
+            background: white; border-radius: 20px; padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); text-align: center;
+            max-width: 650px; width: 100%; position: relative; z-index: 10;
+            border: 4px solid transparent; transition: border 0.3s;
+        }
+
+        /* Visual cue to show when keys are active */
+        .container:focus-within { border-color: #fdbb2d; }
+
+        .score-card { background: #f8f9fa; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 2px solid #e9ecef; flex: 1; }
+        .score-value { font-size: 60px; font-weight: 900; color: #667eea; }
+
+        button { padding: 10px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-add { background: #667eea; flex: 1; font-size: 16px; }
+        .btn-sub { background: #ff6b6b; width: 100%; margin-top: 10px; font-size: 12px; }
+        .btn-settings { background: #2f3542; width: 100%; margin-bottom: 20px; }
+
+        #settingsModal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 30px; border-radius: 15px;
+            box-shadow: 0 0 100px rgba(0,0,0,0.6); display: none; z-index: 3000; width: 320px;
+        }
+
+        .settings-input { width: 100%; padding: 10px; margin: 10px 0 15px; border: 1px solid #ddd; border-radius: 8px; }
+    </style>
+</head>
+<body onclick="document.getElementById('focus-trigger').focus()">
+
+    <input type="text" id="focus-trigger" style="position:absolute; opacity:0; pointer-events:none;">
+
+    <div id="overlay">
+        <div id="winMessage" class="win-text">GAME WON!</div>
+        <div id="champName" class="win-text"></div>
+        <div id="roast" class="roast-text"></div>
+    </div>
+
+    <section id="game-container">
+        <h2>Basket Random</h2>
+        <iframe src="https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" width="800" height="600" style="border:none;"></iframe>
+    </section>
+
+    <div id="settingsModal">
+        <h2>Settings</h2>
+        <label>Points to win Game:</label>
+        <input type="number" id="setPointLimit" class="settings-input">
+        <label>Games to win Champ:</label>
+        <input type="number" id="setGameLimit" class="settings-input">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <span>Angry Mode:</span>
+            <input type="checkbox" id="angryModeToggle">
+        </div>
+        <button class="btn-add" style="width:100%" onclick="closeSettings()">Save Settings</button>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="container" id="main-tracker">
+        <p style="font-size:11px; color:#aaa; margin-bottom:10px;">(Click here if keys stop working)</p>
+        <button class="btn-settings" onclick="openSettings()">⚙️ SETTINGS</button>
         
-        if(isRoast) {
-            document.getElementById('winMessage').className = "win-text wimpy-text";
-            document.getElementById('roast').textContent = mode === 'game' ? "(your still bad cheater. don't get cocky.)" : "(whatever bruv)";
-            for(let i=0; i<(mode === 'game' ? 1 : 3); i++) {
-                parts.push({ x: innerWidth/2, y: innerHeight/2, w: 40, h: 50, c: '#555', vy: -5, l: 1.5, wobble: Math.random() });
-            }
-        } else {
-            document.getElementById('winMessage').className = "win-text";
-            for(let i=0; i<(mode === 'champ' ? 150 : 50); i++) {
-                parts.push({ x: innerWidth/2, y: innerHeight/2, w: Math.random()*30+20, h: Math.random()*30+20, c: `hsl(${Math.random()*360},70%,60%)`, vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, l: 1, wobble: Math.random()*10 });
-            }
-        }
-        setTimeout(() => overlay.style.display = 'none', mode === 'game' ? 2000 : 4000);
-    }
+        <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+            <input type="text" id="nameA" placeholder="Team A" class="settings-input" style="margin:0;">
+            <input type="text" id="nameB" placeholder="Team B" class="settings-input" style="margin:0;">
+        </div>
 
-    function processPoint(winner, amount) {
-        stats[winner].score += amount;
-        if(stats[winner].score >= POINT_LIMIT) {
-            stats.A.score = 0; stats.B.score = 0;
-            stats[winner].games++;
-            if(stats[winner].games >= GAME_LIMIT) {
-                stats.A.games = 0; stats.B.games = 0;
-                showCelebration(document.getElementById(`name${winner}`).value, 'champ');
-            } else {
-                showCelebration(document.getElementById(`name${winner}`).value, 'game');
-            }
-        }
-        updateUI();
-    }
-
-    function updateUI() {
-        document.getElementById('scoreA').textContent = stats.A.score;
-        document.getElementById('scoreB').textContent = stats.B.score;
-        document.getElementById('gamesA').textContent = stats.A.games;
-        document.getElementById('gamesB').textContent = stats.B.games;
-        document.getElementById('labelA').textContent = document.getElementById('nameA').value || 'Team A';
-        document.getElementById('labelB').textContent = document.getElementById('nameB').value || 'Team B';
-    }
-
-    function addA(amt) { processPoint('A', amt); }
-    function addB(amt) { processPoint('B', amt); }
-    function subA() { if(stats.A.score > 0) stats.A.score--; updateUI(); }
-    function subB() { if(stats.B.score > 0) stats.B.score--; updateUI(); }
-
-    function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
-    function closeSettings() { 
-        POINT_LIMIT = parseInt(document.getElementById('setPointLimit').value); 
-        GAME_LIMIT = parseInt(document.getElementById('setGameLimit').value);
-        ANGRY_MODE = document.getElementById('angryModeToggle').checked;
-        localStorage.setItem('POINT_LIMIT', POINT_LIMIT);
-        localStorage.setItem('GAME_LIMIT', GAME_LIMIT);
-        localStorage.setItem('ANGRY_MODE', ANGRY_MODE);
-        document.getElementById('settingsModal').style.display = 'none'; 
-    }
-    function fullReset() { if(confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
-</script>
+        <div style="display: flex; gap: 15px;">
+            <div class="score-card">
+                <div id="labelA" style="font-weight:bold;">Team A</div>
+                <div class="score-value" id="scoreA">0</div>
+                <div style="font
