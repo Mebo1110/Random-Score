@@ -23,11 +23,11 @@
         }
 
         /* The Roast Logic - CSS Only */
-        #ragav-toggle { display: none; }
-        .roast-msg { display: none; color: red; font-style: italic; margin-top: 10px; }
+        #angry-mode { display: none; }
+        .mode-msg { display: none; color: red; font-style: italic; margin-top: 10px; }
         
-        /* If the Ragav checkbox is checked, show the roast */
-        #ragav-toggle:checked ~ .roast-msg {
+        /* If the angry checkbox is checked, show the roast */
+        #angry-mode:checked ~ .mode-msg {
             display: block;
         }
 
@@ -39,7 +39,7 @@
         }
 
         /* Manual Point Bubbles */
-        .points-row {
+        .Games-row {
             display: flex;
             justify-content: center;
             gap: 5px;
@@ -58,7 +58,7 @@
             margin-bottom: 5px;
         }
 
-        .ragav-btn {
+        .angry-btn {
             background: #444;
             color: white;
             padding: 5px 10px;
@@ -78,27 +78,27 @@
     <div class="container">
         <h1>Scoreboard</h1>
         
-        <input type="checkbox" id="ragav-toggle">
-        <label for="ragav-toggle" class="ragav-btn">Toggle Ragav Roast</label>
+        <input type="checkbox" id="angry-mode">
+        <label for="angry-mode" class="angry-btn">Toggle Angry Mode</label>
         
-        <div class="roast-msg">your still bad cheater. don't get cocky.</div>
+        <div class="mode-msg">your still bad cheater. don't get cocky.</div>
 
         <div class="team-box">
-            <span class="label-style">Team A</span>
-            <div class="points-row">
+            <span class="label-style">TeamA</span>
+            <div class="Games-row">
                 <input type="checkbox"> <input type="checkbox"> <input type="checkbox"> 
-                <input type="checkbox"> <input type="checkbox">
+                <input type="checkbox"> <input type="checkbox"><input type="checkbox"><input type="checkbox">
             </div>
-            <p>Check boxes to track points (Max 5)</p>
+            <p>Check boxes to track Games (Max 7)</p>
         </div>
 
         <div class="team-box">
             <span class="label-style">Team B</span>
-            <div class="points-row">
+            <div class="Games-row">
                 <input type="checkbox"> <input type="checkbox"> <input type="checkbox"> 
                 <input type="checkbox"> <input type="checkbox">
             </div>
-            <p>Check boxes to track points (Max 5)</p>
+            <p>Check boxes to track Games (Max 7)</p>
         </div>
 
         <p style="margin-top:20px;">Note: Since JavaScript is blocked, scores cannot be saved automatically. Do not refresh the page!</p>
