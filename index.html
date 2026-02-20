@@ -13,7 +13,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column; /* Stack game and tracker */
+            flex-direction: column; 
             align-items: center;
             padding: 20px;
             overflow-x: hidden;
@@ -328,7 +328,8 @@
         parts.forEach((p, i) => {
             p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.l -= 0.01;
             ctx.globalAlpha = p.l; ctx.fillStyle = p.c;
-            ctx.fillRect(p.x, p.y, p.s, p.s);
+            // Draw larger rectangle (width, height)
+            ctx.fillRect(p.x, p.y, p.w, p.h);
             if(p.l <= 0) parts.splice(i, 1);
         });
         requestAnimationFrame(animate);
@@ -358,26 +359,24 @@
             winMsg.className = "win-text wimpy-text";
             champDisplay.className = "win-text wimpy-text";
             roast.style.display = 'block';
-            
-            // CUSTOM ROAST TEXT
-            roast.textContent = mode === 'game' 
-                ? "(your still bad cheater. don't get cocky.)" 
-                : "(whatever bruv)";
+            roast.textContent = mode === 'game' ? "(your still bad cheater. don't get cocky.)" : "(whatever bruv)";
 
-            // WIMPY CONFETTI
+            // BIGGER WIMPY CONFETTI
             const count = mode === 'game' ? 1 : 3;
             for(let i=0; i<count; i++) parts.push({ 
-                x: innerWidth/2, y: innerHeight/2, s: 12, c: '#555', 
-                vx: (Math.random()-0.5)*4, vy: -8, l: 1.5 
+                x: innerWidth/2, y: innerHeight/2, 
+                w: 20, h: 25, // Large strips
+                c: '#555', vx: (Math.random()-0.5)*4, vy: -8, l: 1.5 
             });
         } else {
             winMsg.className = "win-text";
             champDisplay.className = mode === 'game' ? "win-text" : "win-text champ-tilt";
             roast.style.display = 'none';
-            // BIG CONFETTI
+            // MASSIVE CONFETTI
             const count = mode === 'champ' ? 160 : 60;
             for(let i=0; i<count; i++) parts.push({ 
-                x: innerWidth/2, y: innerHeight/2, s: Math.random()*6+2, 
+                x: innerWidth/2, y: innerHeight/2, 
+                w: Math.random()*15 + 10, h: Math.random()*15 + 10, // Big squares/rectangles
                 c: `hsl(${Math.random()*360},70%,60%)`, 
                 vx: (Math.random()-0.5)*18, vy: (Math.random()-0.5)*18, l: 1 
             });
