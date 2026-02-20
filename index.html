@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score Tracker Ultra Pro - Keyboard Fix</title>
+    <title>Score Tracker Ultra Pro - Final Fix</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,63 +14,54 @@
             padding: 20px; overflow-x: hidden;
         }
 
+        /* GAME SECTION */
         #game-container {
             background: white; border-radius: 20px; padding: 15px; margin-bottom: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 830px;
         }
 
-        iframe { border-radius: 10px; background: #000; }
+        /* KEYBOARD STATUS BAR */
+        #kb-status {
+            background: #ff6b6b; color: white; padding: 10px 20px;
+            border-radius: 50px; font-weight: bold; margin-bottom: 15px;
+            cursor: pointer; transition: 0.3s; border: 2px solid rgba(255,255,255,0.3);
+        }
+        #kb-status.active { background: #2ecc71; box-shadow: 0 0 15px #2ecc71; }
 
+        /* TRACKER UI */
+        .container {
+            background: white; border-radius: 20px; padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); text-align: center;
+            max-width: 650px; width: 100%; position: relative; z-index: 10;
+        }
+
+        .score-card { background: #f8f9fa; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 2px solid #e9ecef; flex: 1; }
+        .score-value { font-size: 60px; font-weight: 900; color: #667eea; }
+
+        button { padding: 10px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; color: white; }
+        .btn-add { background: #667eea; flex: 1; }
+        .btn-sub { background: #ff6b6b; width: 100%; margin-top: 10px; }
+
+        /* OVERLAYS */
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; flex-direction: column;
             justify-content: center; align-items: center; z-index: 2000;
             color: white; pointer-events: none; text-align: center;
         }
-
-        .win-text { font-size: 60px; font-weight: 900; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
-        .champ-tilt { font-size: 80px; color: #fdbb2d; animation: tilt 0.5s infinite alternate ease-in-out; }
-
-        @keyframes tilt {
-            0% { transform: rotate(-8deg) scale(1); }
-            100% { transform: rotate(8deg) scale(1.1); }
-        }
-
-        .wimpy-text { font-size: 25px !important; animation: none !important; color: #888 !important; }
-        .roast-text { font-size: 22px; font-style: italic; color: #ff4757; margin-top: 15px; display: none; font-weight: bold; }
-
+        .win-text { font-size: 60px; font-weight: 900; }
+        .roast-text { font-size: 22px; color: #ff4757; margin-top: 15px; display: none; font-weight: bold; }
         canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1999; }
-
-        .container {
-            background: white; border-radius: 20px; padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); text-align: center;
-            max-width: 650px; width: 100%; position: relative; z-index: 10;
-            border: 4px solid transparent; transition: border 0.3s;
-        }
-
-        /* Visual cue to show when keys are active */
-        .container:focus-within { border-color: #fdbb2d; }
-
-        .score-card { background: #f8f9fa; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 2px solid #e9ecef; flex: 1; }
-        .score-value { font-size: 60px; font-weight: 900; color: #667eea; }
-
-        button { padding: 10px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; color: white; transition: 0.2s; }
-        .btn-add { background: #667eea; flex: 1; font-size: 16px; }
-        .btn-sub { background: #ff6b6b; width: 100%; margin-top: 10px; font-size: 12px; }
-        .btn-settings { background: #2f3542; width: 100%; margin-bottom: 20px; }
-
+        
         #settingsModal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: white; padding: 30px; border-radius: 15px;
             box-shadow: 0 0 100px rgba(0,0,0,0.6); display: none; z-index: 3000; width: 320px;
         }
-
         .settings-input { width: 100%; padding: 10px; margin: 10px 0 15px; border: 1px solid #ddd; border-radius: 8px; }
     </style>
 </head>
-<body onclick="document.getElementById('focus-trigger').focus()">
-
-    <input type="text" id="focus-trigger" style="position:absolute; opacity:0; pointer-events:none;">
+<body>
 
     <div id="overlay">
         <div id="winMessage" class="win-text">GAME WON!</div>
@@ -79,29 +70,21 @@
     </div>
 
     <section id="game-container">
-        <h2>Basket Random</h2>
-        <iframe src="https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" width="800" height="600" style="border:none;"></iframe>
+        <iframe id="game-frame" src="https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" width="800" height="600" style="border:none;"></iframe>
     </section>
+
+    <div id="kb-status" onclick="activateKeys()">Keys Disabled (Click to Enable)</div>
 
     <div id="settingsModal">
         <h2>Settings</h2>
-        <label>Points to win Game:</label>
-        <input type="number" id="setPointLimit" class="settings-input">
-        <label>Games to win Champ:</label>
-        <input type="number" id="setGameLimit" class="settings-input">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-            <span>Angry Mode:</span>
-            <input type="checkbox" id="angryModeToggle">
-        </div>
-        <button class="btn-add" style="width:100%" onclick="closeSettings()">Save Settings</button>
+        <input type="number" id="setPointLimit" class="settings-input" placeholder="Points Limit">
+        <input type="number" id="setGameLimit" class="settings-input" placeholder="Game Limit">
+        <button class="btn-add" style="width:100%" onclick="closeSettings()">Save</button>
     </div>
 
     <canvas id="canvas"></canvas>
 
-    <div class="container" id="main-tracker">
-        <p style="font-size:11px; color:#aaa; margin-bottom:10px;">(Click here if keys stop working)</p>
-        <button class="btn-settings" onclick="openSettings()">⚙️ SETTINGS</button>
-        
+    <div class="container">
         <div style="display: flex; gap: 15px; margin-bottom: 25px;">
             <input type="text" id="nameA" placeholder="Team A" class="settings-input" style="margin:0;">
             <input type="text" id="nameB" placeholder="Team B" class="settings-input" style="margin:0;">
@@ -111,4 +94,71 @@
             <div class="score-card">
                 <div id="labelA" style="font-weight:bold;">Team A</div>
                 <div class="score-value" id="scoreA">0</div>
-                <div style="font
+                <div>Games: <span id="gamesA">0</span></div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <button class="btn-add" onclick="addA(1)">+1</button>
+                    <button class="btn-add" onclick="addA(2)">+2</button>
+                </div>
+            </div>
+            <div class="score-card">
+                <div id="labelB" style="font-weight:bold;">Team B</div>
+                <div class="score-value" id="scoreB">0</div>
+                <div>Games: <span id="gamesB">0</span></div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <button class="btn-add" onclick="addB(1)">+1</button>
+                    <button class="btn-add" onclick="addB(2)">+2</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let POINT_LIMIT = 5, GAME_LIMIT = 4, ANGRY_MODE = true;
+    let stats = { A: { score: 0, games: 0 }, B: { score: 0, games: 0 } };
+
+    // THE KEYBOARD FIX
+    function activateKeys() {
+        window.focus();
+        document.getElementById('kb-status').classList.add('active');
+        document.getElementById('kb-status').textContent = "Keys Active (1 & 2)";
+    }
+
+    // Detect if user clicks game (disables keys)
+    window.addEventListener('blur', () => {
+        document.getElementById('kb-status').classList.remove('active');
+        document.getElementById('kb-status').textContent = "Keys Disabled (Click to Enable)";
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key === "1") addA(1);
+        if (e.key === "2") addB(1);
+    });
+
+    // REUSE CELEBRATION LOGIC
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let parts = [];
+    function animate() {
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        parts.forEach((p, i) => {
+            p.y += p.vy; p.x += Math.sin(p.wobble) * 2; p.wobble += 0.1;
+            p.vy += 0.2; p.l -= 0.008;
+            ctx.globalAlpha = p.l; ctx.fillStyle = p.c;
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            if(p.l <= 0) parts.splice(i, 1);
+        });
+        requestAnimationFrame(animate);
+    }
+    window.onresize = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
+    window.onresize(); animate();
+
+    function showCelebration(name, mode) {
+        const lowerName = name.toLowerCase().trim();
+        const isRoast = lowerName === 'ragav' || (ANGRY_MODE && !['connor', 'mebo'].includes(lowerName));
+        const overlay = document.getElementById('overlay');
+        overlay.style.display = 'flex';
+        document.getElementById('winMessage').textContent = mode === 'game' ? "GAME WON!" : "CHAMPIONSHIP!";
+        document.getElementById('champName').textContent = name;
+        const roast = document.getElementById('roast');
+        roast.style.display =
