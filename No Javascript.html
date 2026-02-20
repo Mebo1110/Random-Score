@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual Score Tracker (No Script)</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #764ba2;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        /* The Roast Logic - CSS Only */
+        #ragav-toggle { display: none; }
+        .roast-msg { display: none; color: red; font-style: italic; margin-top: 10px; }
+        
+        /* If the Ragav checkbox is checked, show the roast */
+        #ragav-toggle:checked ~ .roast-msg {
+            display: block;
+        }
+
+        .team-box {
+            border: 2px solid #eee;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        /* Manual Point Bubbles */
+        .points-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        input[type="checkbox"] {
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+        }
+
+        .label-style {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .ragav-btn {
+            background: #444;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        h1 { margin-bottom: 20px; }
+        p { font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Scoreboard</h1>
+        
+        <input type="checkbox" id="ragav-toggle">
+        <label for="ragav-toggle" class="ragav-btn">Toggle Ragav Roast</label>
+        
+        <div class="roast-msg">your still bad cheater. don't get cocky.</div>
+
+        <div class="team-box">
+            <span class="label-style">Team A</span>
+            <div class="points-row">
+                <input type="checkbox"> <input type="checkbox"> <input type="checkbox"> 
+                <input type="checkbox"> <input type="checkbox">
+            </div>
+            <p>Check boxes to track points (Max 5)</p>
+        </div>
+
+        <div class="team-box">
+            <span class="label-style">Team B</span>
+            <div class="points-row">
+                <input type="checkbox"> <input type="checkbox"> <input type="checkbox"> 
+                <input type="checkbox"> <input type="checkbox">
+            </div>
+            <p>Check boxes to track points (Max 5)</p>
+        </div>
+
+        <p style="margin-top:20px;">Note: Since JavaScript is blocked, scores cannot be saved automatically. Do not refresh the page!</p>
+    </div>
+
+</body>
+</html>
