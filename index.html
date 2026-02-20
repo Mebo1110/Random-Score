@@ -5,24 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Score Tracker Ultra Pro</title>
     <style>
+        /* CSS RESET & BASE */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            <section id="game-container">
-                <h2>Play Basket Random</h2>
-                <iframe src="https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" width="800" height="600" frameborder="0"></iframe>
-            </section>
-            
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column; /* Stack game and tracker */
             align-items: center;
             padding: 20px;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
+        /* GAME SECTION */
+        #game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        #game-container h2 { margin-bottom: 10px; color: #333; }
+
+        /* OVERLAY FOR WINS */
         #overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -72,6 +81,7 @@
 
         canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1999; }
 
+        /* SCORE TRACKER CONTAINER */
         .container {
             background: white;
             border-radius: 20px;
@@ -84,12 +94,7 @@
             z-index: 10;
         }
 
-        .streak-badge {
-            font-size: 16px;
-            color: #ff4757;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
+        .streak-badge { font-size: 16px; color: #ff4757; font-weight: bold; margin-bottom: 5px; }
 
         .score-card {
             background: #f8f9fa;
@@ -148,6 +153,11 @@
         <div id="champName" class="win-text"></div>
         <div id="roast" class="roast-text"></div>
     </div>
+
+    <section id="game-container">
+        <h2>Play Basket Random</h2>
+        <iframe src="https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" width="800" height="600" frameborder="0"></iframe>
+    </section>
 
     <div id="settingsModal">
         <h2 style="margin-bottom:15px;">Settings</h2>
@@ -349,18 +359,28 @@
             champDisplay.className = "win-text wimpy-text";
             roast.style.display = 'block';
             
-            if (lowerName === 'ragav' || ANGRY_MODE) {
-                roast.textContent = mode === 'game' ? "(your still bad cheater. don't get cocky.)" : "(whatever bruv)";
-            }
+            // CUSTOM ROAST TEXT
+            roast.textContent = mode === 'game' 
+                ? "(your still bad cheater. don't get cocky.)" 
+                : "(whatever bruv)";
 
+            // WIMPY CONFETTI
             const count = mode === 'game' ? 1 : 3;
-            for(let i=0; i<count; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, s: 12, c: '#555', vx: (Math.random()-0.5)*4, vy: -8, l: 1.5 });
+            for(let i=0; i<count; i++) parts.push({ 
+                x: innerWidth/2, y: innerHeight/2, s: 12, c: '#555', 
+                vx: (Math.random()-0.5)*4, vy: -8, l: 1.5 
+            });
         } else {
             winMsg.className = "win-text";
             champDisplay.className = mode === 'game' ? "win-text" : "win-text champ-tilt";
             roast.style.display = 'none';
+            // BIG CONFETTI
             const count = mode === 'champ' ? 160 : 60;
-            for(let i=0; i<count; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, s: Math.random()*6+2, c: `hsl(${Math.random()*360},70%,60%)`, vx: (Math.random()-0.5)*18, vy: (Math.random()-0.5)*18, l: 1 });
+            for(let i=0; i<count; i++) parts.push({ 
+                x: innerWidth/2, y: innerHeight/2, s: Math.random()*6+2, 
+                c: `hsl(${Math.random()*360},70%,60%)`, 
+                vx: (Math.random()-0.5)*18, vy: (Math.random()-0.5)*18, l: 1 
+            });
         }
 
         setTimeout(() => overlay.style.display = 'none', mode === 'game' ? 2000 : 4000);
