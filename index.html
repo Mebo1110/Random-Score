@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score Tracker Ultra Pro</title>
+    <title>Score Tracker Ultra Pro - Jumbo Edition</title>
     <style>
-        /* CSS RESET & BASE */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -19,7 +18,6 @@
             overflow-x: hidden;
         }
 
-        /* GAME SECTION */
         #game-container {
             background: white;
             border-radius: 20px;
@@ -29,9 +27,6 @@
             text-align: center;
         }
 
-        #game-container h2 { margin-bottom: 10px; color: #333; }
-
-        /* OVERLAY FOR WINS */
         #overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -47,32 +42,31 @@
         }
 
         .win-text {
-            font-size: 50px;
+            font-size: 60px;
             font-weight: 900;
             text-shadow: 0 0 20px rgba(255,255,255,0.5);
             margin-bottom: 10px;
         }
 
         .champ-tilt {
-            font-size: 70px;
+            font-size: 80px;
             color: #fdbb2d;
             animation: tilt 0.5s infinite alternate ease-in-out;
         }
 
         @keyframes tilt {
-            0% { transform: rotate(-5deg) scale(1); }
-            100% { transform: rotate(5deg) scale(1.1); }
+            0% { transform: rotate(-8deg) scale(1); }
+            100% { transform: rotate(8deg) scale(1.2); }
         }
 
         .wimpy-text {
-            font-size: 20px !important;
+            font-size: 25px !important;
             animation: none !important;
             color: #888 !important;
-            text-shadow: none !important;
         }
 
         .roast-text {
-            font-size: 16px;
+            font-size: 20px;
             font-style: italic;
             color: #ff4757;
             margin-top: 10px;
@@ -81,7 +75,6 @@
 
         canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1999; }
 
-        /* SCORE TRACKER CONTAINER */
         .container {
             background: white;
             border-radius: 20px;
@@ -94,8 +87,6 @@
             z-index: 10;
         }
 
-        .streak-badge { font-size: 16px; color: #ff4757; font-weight: bold; margin-bottom: 5px; }
-
         .score-card {
             background: #f8f9fa;
             border-radius: 15px;
@@ -105,10 +96,8 @@
             flex: 1;
         }
 
-        .score-label { font-size: 18px; font-weight: 700; text-transform: none; margin-bottom: 10px; color: #333; }
-        .score-value { font-size: 56px; font-weight: 900; color: #667eea; margin: 5px 0; }
+        .score-value { font-size: 56px; font-weight: 900; color: #667eea; }
 
-        .btn-group { display: flex; gap: 8px; justify-content: center; }
         button {
             padding: 10px 15px;
             font-size: 14px;
@@ -116,13 +105,11 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
             color: white;
         }
 
         .btn-add { background: #667eea; flex: 2; }
         .btn-sub { background: #ff6b6b; flex: 1; }
-        .btn-reset { background: #444; width: 100%; margin-top: 15px; }
         .btn-settings { background: #2f3542; width: 100%; margin-bottom: 20px; }
 
         #settingsModal {
@@ -134,16 +121,6 @@
         }
 
         .settings-input { width: 100%; padding: 10px; margin: 10px 0 15px; border: 1px solid #ddd; border-radius: 8px; }
-        
-        .toggle-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #f1f2f6;
-            border-radius: 8px;
-        }
     </style>
 </head>
 <body>
@@ -155,66 +132,50 @@
     </div>
 
     <section id="game-container">
-        <h2>Play Basket Random</h2>
         <iframe src="https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" width="800" height="600" frameborder="0"></iframe>
     </section>
 
     <div id="settingsModal">
-        <h2 style="margin-bottom:15px;">Settings</h2>
+        <h2>Settings</h2>
         <label>Points to win Game:</label>
         <input type="number" id="setPointLimit" class="settings-input">
         <label>Games to win Champ:</label>
         <input type="number" id="setGameLimit" class="settings-input">
-        
-        <div class="toggle-container">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
             <span>Angry Mode:</span>
-            <input type="checkbox" id="angryModeToggle" style="width:20px; height:20px; cursor:pointer;">
+            <input type="checkbox" id="angryModeToggle">
         </div>
-        
-        <button class="btn-add" style="width:100%" onclick="closeSettings()">Save Settings</button>
+        <button class="btn-add" style="width:100%" onclick="closeSettings()">Save</button>
     </div>
 
     <canvas id="canvas"></canvas>
 
     <div class="container">
-        <button class="btn-settings" onclick="openSettings()">⚙️ MATCH SETTINGS</button>
-        
+        <button class="btn-settings" onclick="openSettings()">⚙️ SETTINGS</button>
         <div style="display: flex; gap: 15px; margin-bottom: 25px;">
             <input type="text" id="nameA" placeholder="Team A" class="settings-input" style="margin:0;">
             <input type="text" id="nameB" placeholder="Team B" class="settings-input" style="margin:0;">
         </div>
-
         <div style="display: flex; gap: 15px;">
             <div class="score-card">
-                <div class="streak-badge" id="streakA" style="visibility:hidden;">🔥 0</div>
-                <div class="score-label" id="labelA">Team A</div>
-                <div style="background:white; padding:15px; border-radius:12px; border:1px solid #eee;">
-                    <div class="score-value" id="scoreA">0</div>
-                    <div style="font-size:12px; color:#666;">Games: <span id="gamesA" style="font-weight:bold;">0</span></div>
-                    <div style="font-size:12px; color:#666;">Champs: <span id="champleA" style="font-weight:bold;">0</span></div>
-                </div>
-                <div class="btn-group" style="margin-top:15px;">
+                <div id="labelA" style="font-weight:bold;">Team A</div>
+                <div class="score-value" id="scoreA">0</div>
+                <div>Games: <span id="gamesA">0</span></div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
                     <button class="btn-sub" onclick="subA()">-</button>
                     <button class="btn-add" onclick="addA()">+</button>
                 </div>
             </div>
-
             <div class="score-card">
-                <div class="streak-badge" id="streakB" style="visibility:hidden;">🔥 0</div>
-                <div class="score-label" id="labelB">Team B</div>
-                <div style="background:white; padding:15px; border-radius:12px; border:1px solid #eee;">
-                    <div class="score-value" id="scoreB">0</div>
-                    <div style="font-size:12px; color:#666;">Games: <span id="gamesB" style="font-weight:bold;">0</span></div>
-                    <div style="font-size:12px; color:#666;">Champs: <span id="champleB" style="font-weight:bold;">0</span></div>
-                </div>
-                <div class="btn-group" style="margin-top:15px;">
+                <div id="labelB" style="font-weight:bold;">Team B</div>
+                <div class="score-value" id="scoreB">0</div>
+                <div>Games: <span id="gamesB">0</span></div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
                     <button class="btn-sub" onclick="subB()">-</button>
                     <button class="btn-add" onclick="addB()">+</button>
                 </div>
             </div>
         </div>
-
-        <button class="btn-reset" onclick="fullReset()">RESET ALL DATA</button>
     </div>
 
 <script>
@@ -222,102 +183,7 @@
     let GAME_LIMIT = parseInt(localStorage.getItem('GAME_LIMIT')) || 4;
     let ANGRY_MODE = localStorage.getItem('ANGRY_MODE') === null ? true : localStorage.getItem('ANGRY_MODE') === 'true';
     
-    let stats = {
-        A: { score: 0, games: 0, champs: 0, streak: 0 },
-        B: { score: 0, games: 0, champs: 0, streak: 0 }
-    };
-
-    window.onload = () => {
-        ['A', 'B'].forEach(t => {
-            stats[t].score = parseInt(localStorage.getItem(`t${t}S`)) || 0;
-            stats[t].games = parseInt(localStorage.getItem(`t${t}G`)) || 0;
-            stats[t].champs = parseInt(localStorage.getItem(`t${t}C`)) || 0;
-            stats[t].streak = parseInt(localStorage.getItem(`t${t}St`)) || 0;
-            const savedName = localStorage.getItem(`t${t}Name`) || `Team ${t}`;
-            document.getElementById(`name${t}`).value = savedName;
-            document.getElementById(`label${t}`).textContent = savedName;
-        });
-        document.getElementById('angryModeToggle').checked = ANGRY_MODE;
-        updateUI();
-    };
-
-    document.getElementById('nameA').oninput = (e) => syncName('A', e.target.value);
-    document.getElementById('nameB').oninput = (e) => syncName('B', e.target.value);
-
-    function syncName(t, val) {
-        document.getElementById(`label${t}`).textContent = val || `Team ${t}`;
-        save();
-    }
-
-    window.onkeydown = (e) => {
-        if(e.code === "ArrowLeft") addA();
-        if(e.code === "ArrowRight") addB();
-    };
-
-    function openSettings() {
-        document.getElementById('setPointLimit').value = POINT_LIMIT;
-        document.getElementById('setGameLimit').value = GAME_LIMIT;
-        document.getElementById('angryModeToggle').checked = ANGRY_MODE;
-        document.getElementById('settingsModal').style.display = 'block';
-    }
-
-    function closeSettings() {
-        POINT_LIMIT = parseInt(document.getElementById('setPointLimit').value) || 5;
-        GAME_LIMIT = parseInt(document.getElementById('setGameLimit').value) || 4;
-        ANGRY_MODE = document.getElementById('angryModeToggle').checked;
-        localStorage.setItem('POINT_LIMIT', POINT_LIMIT);
-        localStorage.setItem('GAME_LIMIT', GAME_LIMIT);
-        localStorage.setItem('ANGRY_MODE', ANGRY_MODE);
-        document.getElementById('settingsModal').style.display = 'none';
-    }
-
-    function addA() { processPoint('A', 'B'); }
-    function addB() { processPoint('B', 'A'); }
-    function subA() { if(stats.A.score > 0) stats.A.score--; updateUI(); save(); }
-    function subB() { if(stats.B.score > 0) stats.B.score--; updateUI(); save(); }
-
-    function processPoint(winner, loser) {
-        stats[winner].score++;
-        if(stats[winner].score >= POINT_LIMIT) {
-            stats.A.score = 0; stats.B.score = 0;
-            stats[winner].games++;
-            if(stats[winner].games >= GAME_LIMIT) {
-                stats.A.games = 0; stats.B.games = 0;
-                stats[winner].champs++;
-                stats[winner].streak++;
-                stats[loser].streak = 0;
-                showCelebration(document.getElementById(`name${winner}`).value, 'champ');
-            } else {
-                showCelebration(document.getElementById(`name${winner}`).value, 'game');
-            }
-        }
-        updateUI(); save();
-    }
-
-    function updateUI() {
-        ['A', 'B'].forEach(t => {
-            document.getElementById(`score${t}`).textContent = stats[t].score;
-            document.getElementById(`games${t}`).textContent = stats[t].games;
-            document.getElementById(`chample${t}`).textContent = stats[t].champs;
-            const badge = document.getElementById(`streak${t}`);
-            badge.style.visibility = stats[t].streak > 1 ? 'visible' : 'hidden';
-            badge.textContent = `🔥 Streak: ${stats[t].streak}`;
-        });
-    }
-
-    function save() {
-        ['A', 'B'].forEach(t => {
-            localStorage.setItem(`t${t}S`, stats[t].score);
-            localStorage.setItem(`t${t}G`, stats[t].games);
-            localStorage.setItem(`t${t}C`, stats[t].champs);
-            localStorage.setItem(`t${t}St`, stats[t].streak);
-            localStorage.setItem(`t${t}Name`, document.getElementById(`name${t}`).value);
-        });
-    }
-
-    function fullReset() {
-        if(confirm("Wipe all data?")) { localStorage.clear(); location.reload(); }
-    }
+    let stats = { A: { score: 0, games: 0 }, B: { score: 0, games: 0 } };
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -326,9 +192,13 @@
     function animate() {
         ctx.clearRect(0,0, canvas.width, canvas.height);
         parts.forEach((p, i) => {
-            p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.l -= 0.01;
-            ctx.globalAlpha = p.l; ctx.fillStyle = p.c;
-            // Draw larger rectangle (width, height)
+            p.y += p.vy; 
+            p.x += Math.sin(p.wobble) * 2; // Flutter effect
+            p.wobble += 0.1;
+            p.vy += 0.2; 
+            p.l -= 0.008;
+            ctx.globalAlpha = p.l; 
+            ctx.fillStyle = p.c;
             ctx.fillRect(p.x, p.y, p.w, p.h);
             if(p.l <= 0) parts.splice(i, 1);
         });
@@ -339,50 +209,69 @@
 
     function showCelebration(name, mode) {
         const lowerName = name.toLowerCase().trim();
-        const safeNames = ['connor', 'mebo'];
-        
-        let shouldRoast = lowerName === 'ragav';
-        if (ANGRY_MODE && !safeNames.includes(lowerName)) {
-            shouldRoast = true;
-        }
-
+        const isRoast = lowerName === 'ragav' || (ANGRY_MODE && !['connor', 'mebo'].includes(lowerName));
         const overlay = document.getElementById('overlay');
-        const winMsg = document.getElementById('winMessage');
-        const champDisplay = document.getElementById('champName');
-        const roast = document.getElementById('roast');
-
+        
         overlay.style.display = 'flex';
-        winMsg.textContent = mode === 'game' ? "GAME WON!" : "CHAMPIONSHIP!";
-        champDisplay.textContent = name;
-
-        if(shouldRoast) {
-            winMsg.className = "win-text wimpy-text";
-            champDisplay.className = "win-text wimpy-text";
-            roast.style.display = 'block';
-            roast.textContent = mode === 'game' ? "(your still bad cheater. don't get cocky.)" : "(whatever bruv)";
-
-            // BIGGER WIMPY CONFETTI
-            const count = mode === 'game' ? 1 : 3;
-            for(let i=0; i<count; i++) parts.push({ 
-                x: innerWidth/2, y: innerHeight/2, 
-                w: 20, h: 25, // Large strips
-                c: '#555', vx: (Math.random()-0.5)*4, vy: -8, l: 1.5 
-            });
+        document.getElementById('winMessage').textContent = mode === 'game' ? "GAME WON!" : "CHAMPIONSHIP!";
+        document.getElementById('champName').textContent = name;
+        document.getElementById('roast').style.display = isRoast ? 'block' : 'none';
+        
+        if(isRoast) {
+            document.getElementById('winMessage').className = "win-text wimpy-text";
+            document.getElementById('roast').textContent = mode === 'game' ? "(your still bad cheater. don't get cocky.)" : "(whatever bruv)";
+            // JUMBO WIMPY STRIPS
+            for(let i=0; i<(mode === 'game' ? 1 : 3); i++) {
+                parts.push({ x: innerWidth/2, y: innerHeight/2, w: 40, h: 50, c: '#555', vx: 0, vy: -5, l: 1.5, wobble: Math.random() });
+            }
         } else {
-            winMsg.className = "win-text";
-            champDisplay.className = mode === 'game' ? "win-text" : "win-text champ-tilt";
-            roast.style.display = 'none';
-            // MASSIVE CONFETTI
-            const count = mode === 'champ' ? 160 : 60;
-            for(let i=0; i<count; i++) parts.push({ 
-                x: innerWidth/2, y: innerHeight/2, 
-                w: Math.random()*15 + 10, h: Math.random()*15 + 10, // Big squares/rectangles
-                c: `hsl(${Math.random()*360},70%,60%)`, 
-                vx: (Math.random()-0.5)*18, vy: (Math.random()-0.5)*18, l: 1 
-            });
+            document.getElementById('winMessage').className = "win-text";
+            // MASSIVE COLORED SQUARES
+            for(let i=0; i<(mode === 'champ' ? 100 : 40); i++) {
+                parts.push({ 
+                    x: innerWidth/2, y: innerHeight/2, 
+                    w: Math.random()*30 + 20, h: Math.random()*30 + 20, 
+                    c: `hsl(${Math.random()*360},70%,60%)`, 
+                    vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, 
+                    l: 1, wobble: Math.random() * 10 
+                });
+            }
         }
-
         setTimeout(() => overlay.style.display = 'none', mode === 'game' ? 2000 : 4000);
+    }
+
+    function processPoint(winner) {
+        stats[winner].score++;
+        if(stats[winner].score >= POINT_LIMIT) {
+            stats.A.score = 0; stats.B.score = 0;
+            stats[winner].games++;
+            if(stats[winner].games >= GAME_LIMIT) {
+                stats.A.games = 0; stats.B.games = 0;
+                showCelebration(document.getElementById(`name${winner}`).value, 'champ');
+            } else {
+                showCelebration(document.getElementById(`name${winner}`).value, 'game');
+            }
+        }
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('scoreA').textContent = stats.A.score;
+        document.getElementById('scoreB').textContent = stats.B.score;
+        document.getElementById('gamesA').textContent = stats.A.games;
+        document.getElementById('gamesB').textContent = stats.B.games;
+    }
+
+    function addA() { processPoint('A'); }
+    function addB() { processPoint('B'); }
+    function subA() { if(stats.A.score > 0) stats.A.score--; updateUI(); }
+    function subB() { if(stats.B.score > 0) stats.B.score--; updateUI(); }
+    function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
+    function closeSettings() { 
+        POINT_LIMIT = document.getElementById('setPointLimit').value; 
+        GAME_LIMIT = document.getElementById('setGameLimit').value;
+        ANGRY_MODE = document.getElementById('angryModeToggle').checked;
+        document.getElementById('settingsModal').style.display = 'none'; 
     }
 </script>
 </body>
