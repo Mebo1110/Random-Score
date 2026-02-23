@@ -14,7 +14,6 @@
             padding: 20px; overflow-x: hidden;
         }
 
-        /* GAME SECTION */
         #game-container {
             background: white; border-radius: 20px; padding: 15px; margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 830px;
@@ -34,7 +33,6 @@
         }
         #kb-status.active { background: #2ecc71; box-shadow: 0 0 15px #2ecc71; }
 
-        /* TRACKER UI */
         .container {
             background: white; border-radius: 20px; padding: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); text-align: center;
@@ -49,7 +47,6 @@
         .btn-reset { background: #333; width: 100%; margin-top: 20px; padding: 12px; }
         .btn-settings { background: #2f3542; width: 100%; margin-bottom: 15px; padding: 8px; font-size: 12px; }
 
-        /* MODAL */
         #settingsModal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: white; padding: 30px; border-radius: 15px;
@@ -57,7 +54,6 @@
         }
         .settings-input { width: 100%; padding: 10px; margin: 10px 0 15px; border: 1px solid #ddd; border-radius: 8px; }
 
-        /* OVERLAY */
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; flex-direction: column;
@@ -67,6 +63,9 @@
         canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1999; }
         #roast { font-size: 22px; color: #ff4757; font-style: italic; margin-top: 15px; font-weight: bold; }
         .champ-stat { font-size: 12px; color: #764ba2; font-weight: bold; margin-top: 5px; }
+        
+        /* Utility to hide points */
+        .hide-points { display: none !important; }
     </style>
 </head>
 <body>
@@ -91,10 +90,17 @@
         <input type="number" id="setPointLimit" class="settings-input" value="5">
         <label style="font-size:12px;">Games to Win Champ:</label>
         <input type="number" id="setGameLimit" class="settings-input" value="4">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+        
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
             <span>Angry Mode:</span>
             <input type="checkbox" id="angryModeToggle" checked>
         </div>
+        
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <span style="color: #667eea; font-weight: bold;">Games Only Mode:</span>
+            <input type="checkbox" id="gamesOnlyToggle" onchange="togglePointDisplay()">
+        </div>
+        
         <button class="btn-add" style="width:100%" onclick="closeSettings()">Save Settings</button>
     </div>
 
@@ -109,19 +115,27 @@
             <div class="score-card">
                 <div id="streakA" class="streak-val">🔥 Game Streak: 0</div>
                 <div id="labelA" style="font-weight:bold;">Team A</div>
-                <div class="score-value" id="scoreA">0</div>
+                
+                <div id="point-area-A">
+                    <div class="score-value" id="scoreA">0</div>
+                </div>
+
                 <div>Games: <span id="gamesA">0</span></div>
                 <div class="champ-stat">🏆 Champs: <span id="champsA">0</span></div>
-                <button class="btn-add" onclick="addA()">+1</button>
+                <button class="btn-add" id="add-btn-A" onclick="addA()">+1 Point</button>
             </div>
 
             <div class="score-card">
                 <div id="streakB" class="streak-val">🔥 Game Streak: 0</div>
                 <div id="labelB" style="font-weight:bold;">Team B</div>
-                <div class="score-value" id="scoreB">0</div>
+                
+                <div id="point-area-B">
+                    <div class="score-value" id="scoreB">0</div>
+                </div>
+
                 <div>Games: <span id="gamesB">0</span></div>
                 <div class="champ-stat">🏆 Champs: <span id="champsB">0</span></div>
-                <button class="btn-add" onclick="addB()">+1</button>
+                <button class="btn-add" id="add-btn-B" onclick="addB()">+1 Point</button>
             </div>
         </div>
 
@@ -134,6 +148,7 @@
     let POINT_LIMIT = 5;
     let GAME_LIMIT = 4;
     let ANGRY_MODE = true;
+    let GAMES_ONLY = false;
     let stats = { 
         A: { score: 0, games: 0, streak: 0, champs: 0 }, 
         B: { score: 0, games: 0, streak: 0, champs: 0 } 
@@ -158,30 +173,49 @@
     }
 
     function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
+    
+    function togglePointDisplay() {
+        const isOnly = document.getElementById('gamesOnlyToggle').checked;
+        document.getElementById('point-area-A').classList.toggle('hide-points', isOnly);
+        document.getElementById('point-area-B').classList.toggle('hide-points', isOnly);
+        document.getElementById('add-btn-A').textContent = isOnly ? "+1 Game" : "+1 Point";
+        document.getElementById('add-btn-B').textContent = isOnly ? "+1 Game" : "+1 Point";
+    }
+
     function closeSettings() {
         POINT_LIMIT = parseInt(document.getElementById('setPointLimit').value) || 5;
         GAME_LIMIT = parseInt(document.getElementById('setGameLimit').value) || 4;
         ANGRY_MODE = document.getElementById('angryModeToggle').checked;
+        GAMES_ONLY = document.getElementById('gamesOnlyToggle').checked;
         document.getElementById('settingsModal').style.display = 'none';
+        togglePointDisplay();
     }
 
     function processPoint(winner, loser) {
-        stats[winner].score += 1;
-        if (stats[winner].score >= POINT_LIMIT) {
-            stats.A.score = 0; stats.B.score = 0;
-            stats[winner].games++;
-            stats[winner].streak++;
-            stats[loser].streak = 0;
-            
-            let isChamp = stats[winner].games >= GAME_LIMIT;
-            showCelebration(document.getElementById(`name${winner}`).value, isChamp);
-            
-            if(isChamp) {
-                stats[winner].champs++;
-                stats.A.games = 0; stats.B.games = 0;
+        if (GAMES_ONLY) {
+            handleGameWin(winner, loser);
+        } else {
+            stats[winner].score += 1;
+            if (stats[winner].score >= POINT_LIMIT) {
+                stats.A.score = 0; stats.B.score = 0;
+                handleGameWin(winner, loser);
             }
         }
         updateUI();
+    }
+
+    function handleGameWin(winner, loser) {
+        stats[winner].games++;
+        stats[winner].streak++;
+        stats[loser].streak = 0;
+        
+        let isChamp = stats[winner].games >= GAME_LIMIT;
+        showCelebration(document.getElementById(`name${winner}`).value, isChamp);
+        
+        if(isChamp) {
+            stats[winner].champs++;
+            stats.A.games = 0; stats.B.games = 0;
+        }
     }
 
     function updateUI() {
@@ -232,20 +266,15 @@
         document.getElementById('winMessage').textContent = isChamp ? "CHAMPIONSHIP!" : "GAME WON!";
         document.getElementById('champName').textContent = name;
 
-        // Zackary Mode Check
         if (lowerName === 'zackary') {
-            roast.textContent = isChamp ? "Larry Bird was in the Epstein files" : "Larry Bird is a bum, you bum";
+            roast.textContent = isChamp ? "Larry Bird was in the Epstein files" : "Larry Bird is a bum you bum";
             roast.style.display = 'block';
             for(let i=0; i<8; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*15, vy: -10, wobble: Math.random(), l: 1.5 });
-        } 
-        // Ragav / Angry Mode Check
-        else if (lowerName === 'ragav' || (ANGRY_MODE && !safeNames.includes(lowerName))) {
+        } else if (lowerName === 'ragav' || (ANGRY_MODE && !safeNames.includes(lowerName))) {
             roast.textContent = isChamp ? "(whatever bruv)" : "(your still bad cheater. don't get cocky.)";
             roast.style.display = 'block';
             for(let i=0; i<8; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*15, vy: -10, wobble: Math.random(), l: 1.5 });
-        } 
-        // Normal / Safe Mode
-        else {
+        } else {
             roast.textContent = "";
             let count = isChamp ? 200 : 70;
             for(let i=0; i<count; i++) {
