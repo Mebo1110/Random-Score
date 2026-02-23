@@ -45,7 +45,7 @@
         button { padding: 10px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; color: white; transition: 0.2s; }
         .btn-add { background: #667eea; width: 100%; font-size: 18px; margin-top: 10px; }
         .btn-reset { background: #333; width: 100%; margin-top: 20px; padding: 12px; }
-        .btn-settings { background: #2f3542; width: 100%; margin-bottom: 15px; padding: 8px; font-size: 12px; }
+        .btn-settings { background: #2f3542; width: 100%; margin-bottom: 15px; padding: 12px; font-size: 14px; }
 
         #settingsModal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -64,7 +64,6 @@
         #roast { font-size: 22px; color: #ff4757; font-style: italic; margin-top: 15px; font-weight: bold; }
         .champ-stat { font-size: 12px; color: #764ba2; font-weight: bold; margin-top: 5px; }
         
-        /* Utility to hide points */
         .hide-points { display: none !important; }
     </style>
 </head>
@@ -85,27 +84,32 @@
     <div id="kb-status" onclick="activateKeys()">Keys Disabled (Click to Enable)</div>
 
     <div id="settingsModal">
-        <h2>Match Settings</h2>
-        <label style="font-size:12px;">Points to Win Game:</label>
-        <input type="number" id="setPointLimit" class="settings-input" value="5">
-        <label style="font-size:12px;">Games to Win Champ:</label>
-        <input type="number" id="setGameLimit" class="settings-input" value="4">
+        <h2 style="margin-bottom: 15px;">Match Settings</h2>
+        <label style="font-size:12px; display: block;">Points to Win Game:</label>
+        <input type="number" id="setPointLimit" class="settings-input">
+        <label style="font-size:12px; display: block;">Games to Win Champ:</label>
+        <input type="number" id="setGameLimit" class="settings-input">
         
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
             <span>Angry Mode:</span>
-            <input type="checkbox" id="angryModeToggle" checked>
+            <input type="checkbox" id="angryModeToggle" style="width: 20px; height: 20px;">
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
+            <span>Zackary Mode:</span>
+            <input type="checkbox" id="zackaryModeToggle" style="width: 20px; height: 20px;">
         </div>
         
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:20px;">
             <span style="color: #667eea; font-weight: bold;">Games Only Mode:</span>
-            <input type="checkbox" id="gamesOnlyToggle" onchange="togglePointDisplay()">
+            <input type="checkbox" id="gamesOnlyToggle" style="width: 20px; height: 20px;">
         </div>
         
-        <button class="btn-add" style="width:100%" onclick="closeSettings()">Save Settings</button>
+        <button class="btn-add" style="width:100%" onclick="closeSettings()">Save & Close</button>
     </div>
 
     <div class="container">
-        <button class="btn-settings" onclick="openSettings()">⚙️ SETTINGS</button>
+        <button class="btn-settings" onclick="openSettings()">⚙️ Match Settings</button>
         <div style="display: flex; gap: 15px; margin-bottom: 25px;">
             <input type="text" id="nameA" placeholder="Team A" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
             <input type="text" id="nameB" placeholder="Team B" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
@@ -115,11 +119,7 @@
             <div class="score-card">
                 <div id="streakA" class="streak-val">🔥 Game Streak: 0</div>
                 <div id="labelA" style="font-weight:bold;">Team A</div>
-                
-                <div id="point-area-A">
-                    <div class="score-value" id="scoreA">0</div>
-                </div>
-
+                <div id="point-area-A"><div class="score-value" id="scoreA">0</div></div>
                 <div>Games: <span id="gamesA">0</span></div>
                 <div class="champ-stat">🏆 Champs: <span id="champsA">0</span></div>
                 <button class="btn-add" id="add-btn-A" onclick="addA()">+1 Point</button>
@@ -128,11 +128,7 @@
             <div class="score-card">
                 <div id="streakB" class="streak-val">🔥 Game Streak: 0</div>
                 <div id="labelB" style="font-weight:bold;">Team B</div>
-                
-                <div id="point-area-B">
-                    <div class="score-value" id="scoreB">0</div>
-                </div>
-
+                <div id="point-area-B"><div class="score-value" id="scoreB">0</div></div>
                 <div>Games: <span id="gamesB">0</span></div>
                 <div class="champ-stat">🏆 Champs: <span id="champsB">0</span></div>
                 <button class="btn-add" id="add-btn-B" onclick="addB()">+1 Point</button>
@@ -145,13 +141,25 @@
     <canvas id="canvas"></canvas>
 
 <script>
-    let POINT_LIMIT = 5;
-    let GAME_LIMIT = 4;
-    let ANGRY_MODE = true;
-    let GAMES_ONLY = false;
+    let POINT_LIMIT = parseInt(localStorage.getItem('POINT_LIMIT')) || 5;
+    let GAME_LIMIT = parseInt(localStorage.getItem('GAME_LIMIT')) || 4;
+    let ANGRY_MODE = localStorage.getItem('ANGRY_MODE') === null ? true : localStorage.getItem('ANGRY_MODE') === 'true';
+    let ZACK_MODE = localStorage.getItem('ZACK_MODE') === null ? true : localStorage.getItem('ZACK_MODE') === 'true';
+    let GAMES_ONLY = localStorage.getItem('GAMES_ONLY') === 'true';
+    
     let stats = { 
         A: { score: 0, games: 0, streak: 0, champs: 0 }, 
         B: { score: 0, games: 0, streak: 0, champs: 0 } 
+    };
+
+    window.onload = () => {
+        document.getElementById('setPointLimit').value = POINT_LIMIT;
+        document.getElementById('setGameLimit').value = GAME_LIMIT;
+        document.getElementById('angryModeToggle').checked = ANGRY_MODE;
+        document.getElementById('zackaryModeToggle').checked = ZACK_MODE;
+        document.getElementById('gamesOnlyToggle').checked = GAMES_ONLY;
+        applySettingsUI();
+        updateUI();
     };
 
     function activateKeys() {
@@ -174,21 +182,28 @@
 
     function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
     
-    function togglePointDisplay() {
-        const isOnly = document.getElementById('gamesOnlyToggle').checked;
-        document.getElementById('point-area-A').classList.toggle('hide-points', isOnly);
-        document.getElementById('point-area-B').classList.toggle('hide-points', isOnly);
-        document.getElementById('add-btn-A').textContent = isOnly ? "+1 Game" : "+1 Point";
-        document.getElementById('add-btn-B').textContent = isOnly ? "+1 Game" : "+1 Point";
+    function applySettingsUI() {
+        document.getElementById('point-area-A').classList.toggle('hide-points', GAMES_ONLY);
+        document.getElementById('point-area-B').classList.toggle('hide-points', GAMES_ONLY);
+        document.getElementById('add-btn-A').textContent = GAMES_ONLY ? "+1 Game" : "+1 Point";
+        document.getElementById('add-btn-B').textContent = GAMES_ONLY ? "+1 Game" : "+1 Point";
     }
 
     function closeSettings() {
         POINT_LIMIT = parseInt(document.getElementById('setPointLimit').value) || 5;
         GAME_LIMIT = parseInt(document.getElementById('setGameLimit').value) || 4;
         ANGRY_MODE = document.getElementById('angryModeToggle').checked;
+        ZACK_MODE = document.getElementById('zackaryModeToggle').checked;
         GAMES_ONLY = document.getElementById('gamesOnlyToggle').checked;
+        
+        localStorage.setItem('POINT_LIMIT', POINT_LIMIT);
+        localStorage.setItem('GAME_LIMIT', GAME_LIMIT);
+        localStorage.setItem('ANGRY_MODE', ANGRY_MODE);
+        localStorage.setItem('ZACK_MODE', ZACK_MODE);
+        localStorage.setItem('GAMES_ONLY', GAMES_ONLY);
+        
         document.getElementById('settingsModal').style.display = 'none';
-        togglePointDisplay();
+        applySettingsUI();
     }
 
     function processPoint(winner, loser) {
@@ -266,7 +281,7 @@
         document.getElementById('winMessage').textContent = isChamp ? "CHAMPIONSHIP!" : "GAME WON!";
         document.getElementById('champName').textContent = name;
 
-        if (lowerName === 'zackary') {
+        if (lowerName === 'zackary' && ZACK_MODE) {
             roast.textContent = isChamp ? "Larry Bird was in the Epstein files" : "Larry Bird is a bum you bum";
             roast.style.display = 'block';
             for(let i=0; i<8; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*15, vy: -10, wobble: Math.random(), l: 1.5 });
