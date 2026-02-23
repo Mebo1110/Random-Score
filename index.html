@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score Tracker Ultra Pro - Dual Game</title>
+    <title>Score Tracker Ultra Pro - Triple Game</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -97,7 +97,7 @@
     <div id="kb-status" onclick="activateKeys()">Keys Disabled (Click to Enable)</div>
 
     <div id="settingsModal">
-        <h2>Match Settings</h2>
+        <h2 style="margin-bottom:15px;">Match Settings</h2>
         <label style="font-size:12px;">Points to Win Game:</label>
         <input type="number" id="setPointLimit" class="settings-input">
         <label style="font-size:12px;">Games to Win Champ:</label>
@@ -156,7 +156,8 @@
 
     const gamesList = [
         { title: "Basket Random", url: "https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" },
-        { title: "Soccer Random", url: "https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/soccer-random.html" }
+        { title: "Soccer Random", url: "https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/soccer-random.html" },
+        { title: "Volley Random", url: "https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/volley-random.html" }
     ];
     let currentGameIndex = 0;
 
@@ -291,16 +292,16 @@
         if (lowerName === 'zackary' && ZACK_MODE) {
             roast.textContent = isChamp ? "Larry Bird was in the Epstein files" : "Larry Bird is a bum you bum";
             roast.style.display = 'block';
-            for(let i=0; i<8; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*15, vy: -10, wobble: Math.random(), l: 1.5 });
+            for(let i=0; i<8; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*25, vy: -12, wobble: Math.random(), l: 1.5 });
         } else if (lowerName === 'ragav' || (ANGRY_MODE && !safeNames.includes(lowerName))) {
             roast.textContent = isChamp ? "(whatever bruv)" : "(your still bad cheater. don't get cocky.)";
             roast.style.display = 'block';
-            for(let i=0; i<8; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*15, vy: -10, wobble: Math.random(), l: 1.5 });
+            for(let i=0; i<8; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*25, vy: -12, wobble: Math.random(), l: 1.5 });
         } else {
             roast.textContent = "";
             let count = isChamp ? 200 : 70;
             for(let i=0; i<count; i++) {
-                parts.push({ x: innerWidth/2, y: innerHeight/2, w: Math.random()*35+25, h: Math.random()*35+25, c: `hsl(${Math.random()*360},70%,60%)`, vx: (Math.random()-0.5)*45, vy: (Math.random()-0.5)*40, l: 1, wobble: Math.random()*15 });
+                parts.push({ x: innerWidth/2, y: innerHeight/2, w: Math.random()*35+25, h: Math.random()*35+25, c: `hsl(${Math.random()*360},70%,60%)`, vx: (Math.random()-0.5)*50, vy: (Math.random()-0.5)*45, l: 1, wobble: Math.random()*15 });
             }
         }
         setTimeout(() => overlay.style.display = 'none', isChamp ? 4000 : 2500);
