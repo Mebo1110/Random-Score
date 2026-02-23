@@ -14,7 +14,6 @@
             padding: 20px; overflow-x: hidden;
         }
 
-        /* GAME SECTION */
         #game-container {
             background: white; border-radius: 20px; padding: 15px; margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 830px;
@@ -27,7 +26,6 @@
             color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;
         }
 
-        /* KEYBOARD STATUS */
         #kb-status {
             background: #ff6b6b; color: white; padding: 8px 20px;
             border-radius: 50px; font-weight: bold; margin-bottom: 15px;
@@ -35,7 +33,6 @@
         }
         #kb-status.active { background: #2ecc71; box-shadow: 0 0 15px #2ecc71; }
 
-        /* TRACKER UI */
         .container {
             background: white; border-radius: 20px; padding: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); text-align: center;
@@ -49,7 +46,6 @@
         .btn-add { background: #667eea; width: 100%; font-size: 18px; margin-top: 10px; }
         .btn-reset { background: #333; width: 100%; margin-top: 20px; padding: 12px; }
 
-        /* OVERLAY */
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; flex-direction: column;
@@ -58,6 +54,7 @@
         }
         canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1999; }
         #roast { font-size: 22px; color: #ff4757; font-style: italic; margin-top: 15px; font-weight: bold; }
+        .champ-stat { font-size: 12px; color: #764ba2; font-weight: bold; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -84,19 +81,21 @@
 
         <div style="display: flex; gap: 15px;">
             <div class="score-card">
-                <div id="streakA" class="streak-val">🔥 Streak: 0</div>
+                <div id="streakA" class="streak-val">🔥 Game Streak: 0</div>
                 <div id="labelA" style="font-weight:bold;">Team A</div>
                 <div class="score-value" id="scoreA">0</div>
                 <div>Games: <span id="gamesA">0</span></div>
-                <button class="btn-add" onclick="addA(1)">+1</button>
+                <div class="champ-stat">🏆 Champs: <span id="champsA">0</span></div>
+                <button class="btn-add" onclick="addA()">+1</button>
             </div>
 
             <div class="score-card">
-                <div id="streakB" class="streak-val">🔥 Streak: 0</div>
+                <div id="streakB" class="streak-val">🔥 Game Streak: 0</div>
                 <div id="labelB" style="font-weight:bold;">Team B</div>
                 <div class="score-value" id="scoreB">0</div>
                 <div>Games: <span id="gamesB">0</span></div>
-                <button class="btn-add" onclick="addB(1)">+1</button>
+                <div class="champ-stat">🏆 Champs: <span id="champsB">0</span></div>
+                <button class="btn-add" onclick="addB()">+1</button>
             </div>
         </div>
 
@@ -108,9 +107,11 @@
 <script>
     let POINT_LIMIT = 5;
     let GAME_LIMIT = 4;
-    let stats = { A: { score: 0, games: 0, streak: 0 }, B: { score: 0, games: 0, streak: 0 } };
+    let stats = { 
+        A: { score: 0, games: 0, streak: 0, champs: 0 }, 
+        B: { score: 0, games: 0, streak: 0, champs: 0 } 
+    };
 
-    // --- KEYBOARD & FOCUS ---
     function activateKeys() {
         window.focus();
         document.getElementById('kb-status').classList.add('active');
@@ -119,27 +120,27 @@
 
     window.onkeydown = (e) => {
         if (e.target.tagName === 'INPUT') return;
-        if (e.key === "1") addA(1);
-        if (e.key === "2") addB(1);
+        if (e.key === "1") addA();
+        if (e.key === "2") addB();
     };
 
     function toggleFS() {
         let elem = document.getElementById("game-iframe");
-        if (elem.requestFullscreen) { elem.requestFullscreen(); }
-        else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
+        if (elem.requestFullscreen) elem.requestFullscreen();
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
     }
 
-    // --- GAME LOGIC ---
     function processPoint(winner, loser) {
         stats[winner].score += 1;
         if (stats[winner].score >= POINT_LIMIT) {
             stats.A.score = 0; stats.B.score = 0;
             stats[winner].games++;
+            stats[winner].streak++; // Streak is now for Games
+            stats[loser].streak = 0; // Reset loser streak
             
             let isChamp = stats[winner].games >= GAME_LIMIT;
             if(isChamp) {
-                stats[winner].streak++;
-                stats[loser].streak = 0;
+                stats[winner].champs++;
                 showCelebration(document.getElementById(`name${winner}`).value, true);
                 stats.A.games = 0; stats.B.games = 0;
             } else {
@@ -153,22 +154,25 @@
         ['A','B'].forEach(t => {
             document.getElementById(`score${t}`).textContent = stats[t].score;
             document.getElementById(`games${t}`).textContent = stats[t].games;
-            document.getElementById(`streak${t}`).textContent = `🔥 Streak: ${stats[t].streak}`;
+            document.getElementById(`champs${t}`).textContent = stats[t].champs;
+            document.getElementById(`streak${t}`).textContent = `🔥 Game Streak: ${stats[t].streak}`;
             document.getElementById(`label${t}`).textContent = document.getElementById(`name${t}`).value || `Team ${t}`;
         });
     }
 
     function fullReset() {
         if(confirm("Reset all scores?")) {
-            stats = { A: { score: 0, games: 0, streak: 0 }, B: { score: 0, games: 0, streak: 0 } };
+            stats = { 
+                A: { score: 0, games: 0, streak: 0, champs: 0 }, 
+                B: { score: 0, games: 0, streak: 0, champs: 0 } 
+            };
             updateUI();
         }
     }
 
-    function addA(n) { processPoint('A', 'B'); }
-    function addB(n) { processPoint('B', 'A'); }
+    function addA() { processPoint('A', 'B'); }
+    function addB() { processPoint('B', 'A'); }
 
-    // --- SCATTER CONFETTI ---
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     let parts = [];
@@ -177,9 +181,8 @@
         ctx.clearRect(0,0, canvas.width, canvas.height);
         parts.forEach((p, i) => {
             p.y += p.vy; 
-            p.x += p.vx + Math.sin(p.wobble) * 4; // High scatter
-            p.wobble += 0.1;
-            p.vy += 0.2; p.l -= 0.008;
+            p.x += p.vx + Math.sin(p.wobble) * 6;
+            p.wobble += 0.1; p.vy += 0.2; p.l -= 0.008;
             ctx.globalAlpha = p.l; ctx.fillStyle = p.c;
             ctx.fillRect(p.x, p.y, p.w, p.h);
             if(p.l <= 0) parts.splice(i, 1);
@@ -196,22 +199,20 @@
         overlay.style.display = 'flex';
         document.getElementById('winMessage').textContent = isChamp ? "CHAMPIONSHIP!" : "GAME WON!";
         document.getElementById('champName').textContent = name;
-        
         const roast = document.getElementById('roast');
+        
         if (isRoast) {
             roast.textContent = isChamp ? "(whatever bruv)" : "(your still bad cheater. don't get cocky.)";
-            for(let i=0; i<5; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*10, vy: -8, wobble: Math.random(), l: 1.5 });
+            for(let i=0; i<8; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 45, h: 55, c: '#555', vx: (Math.random()-0.5)*15, vy: -10, wobble: Math.random(), l: 1.5 });
         } else {
             roast.textContent = "";
-            let count = isChamp ? 150 : 60;
+            let count = isChamp ? 200 : 70;
             for(let i=0; i<count; i++) {
                 parts.push({ 
-                    x: innerWidth/2, y: innerHeight/2, 
-                    w: Math.random()*35+25, h: Math.random()*35+25, 
+                    x: innerWidth/2, y: innerHeight/2, w: Math.random()*35+25, h: Math.random()*35+25, 
                     c: `hsl(${Math.random()*360},70%,60%)`, 
-                    vx: (Math.random()-0.5)*30, // Much wider scatter
-                    vy: (Math.random()-0.5)*30, 
-                    l: 1, wobble: Math.random()*10 
+                    vx: (Math.random()-0.5)*45, vy: (Math.random()-0.5)*40, 
+                    l: 1, wobble: Math.random()*15 
                 });
             }
         }
