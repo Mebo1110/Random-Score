@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score Tracker Ultra Pro - Zackary Mode</title>
+    <title>Score Tracker Ultra Pro - Dual Game</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -21,10 +21,18 @@
         }
         iframe { border-radius: 10px; background: #000; width: 800px; height: 600px; }
         
-        .fs-btn {
-            position: absolute; top: 20px; right: 25px; background: rgba(0,0,0,0.6);
-            color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;
+        .game-controls {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; padding: 0 15px;
         }
+
+        .ctrl-btn {
+            background: rgba(0,0,0,0.1); color: #333; border: none; 
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;
+            transition: 0.2s;
+        }
+        .ctrl-btn:hover { background: rgba(0,0,0,0.2); }
+        .switch-btn { background: #764ba2; color: white; }
 
         #kb-status {
             background: #ff6b6b; color: white; padding: 8px 20px;
@@ -76,35 +84,33 @@
     </div>
 
     <section id="game-container">
-        <h2>Basket Random</h2>
-        <button class="fs-btn" onclick="toggleFS()">Fullscreen</button>
+        <div class="game-controls">
+            <h2 id="game-title">Basket Random</h2>
+            <div>
+                <button class="ctrl-btn switch-btn" onclick="switchGame()">🔄 Switch Game</button>
+                <button class="ctrl-btn" onclick="toggleFS()">Fullscreen</button>
+            </div>
+        </div>
         <iframe id="game-iframe" src="https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" style="border:none;"></iframe>
     </section>
 
     <div id="kb-status" onclick="activateKeys()">Keys Disabled (Click to Enable)</div>
 
     <div id="settingsModal">
-        <h2 style="margin-bottom: 15px;">Match Settings</h2>
-        <label style="font-size:12px; display: block;">Points to Win Game:</label>
+        <h2>Match Settings</h2>
+        <label style="font-size:12px;">Points to Win Game:</label>
         <input type="number" id="setPointLimit" class="settings-input">
-        <label style="font-size:12px; display: block;">Games to Win Champ:</label>
+        <label style="font-size:12px;">Games to Win Champ:</label>
         <input type="number" id="setGameLimit" class="settings-input">
-        
         <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
-            <span>Angry Mode:</span>
-            <input type="checkbox" id="angryModeToggle" style="width: 20px; height: 20px;">
+            <span>Angry Mode:</span><input type="checkbox" id="angryModeToggle">
         </div>
-
         <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
-            <span>Zackary Mode:</span>
-            <input type="checkbox" id="zackaryModeToggle" style="width: 20px; height: 20px;">
+            <span>Zackary Mode:</span><input type="checkbox" id="zackaryModeToggle">
         </div>
-        
         <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:20px;">
-            <span style="color: #667eea; font-weight: bold;">Games Only Mode:</span>
-            <input type="checkbox" id="gamesOnlyToggle" style="width: 20px; height: 20px;">
+            <span style="font-weight: bold;">Games Only Mode:</span><input type="checkbox" id="gamesOnlyToggle">
         </div>
-        
         <button class="btn-add" style="width:100%" onclick="closeSettings()">Save & Close</button>
     </div>
 
@@ -134,7 +140,6 @@
                 <button class="btn-add" id="add-btn-B" onclick="addB()">+1 Point</button>
             </div>
         </div>
-
         <button class="btn-reset" onclick="fullReset()">Reset</button>
     </div>
 
@@ -147,10 +152,13 @@
     let ZACK_MODE = localStorage.getItem('ZACK_MODE') === null ? true : localStorage.getItem('ZACK_MODE') === 'true';
     let GAMES_ONLY = localStorage.getItem('GAMES_ONLY') === 'true';
     
-    let stats = { 
-        A: { score: 0, games: 0, streak: 0, champs: 0 }, 
-        B: { score: 0, games: 0, streak: 0, champs: 0 } 
-    };
+    let stats = { A: { score: 0, games: 0, streak: 0, champs: 0 }, B: { score: 0, games: 0, streak: 0, champs: 0 } };
+
+    const gamesList = [
+        { title: "Basket Random", url: "https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" },
+        { title: "Soccer Random", url: "https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/soccer-random.html" }
+    ];
+    let currentGameIndex = 0;
 
     window.onload = () => {
         document.getElementById('setPointLimit').value = POINT_LIMIT;
@@ -161,6 +169,12 @@
         applySettingsUI();
         updateUI();
     };
+
+    function switchGame() {
+        currentGameIndex = (currentGameIndex + 1) % gamesList.length;
+        document.getElementById('game-title').textContent = gamesList[currentGameIndex].title;
+        document.getElementById('game-iframe').src = gamesList[currentGameIndex].url;
+    }
 
     function activateKeys() {
         window.focus();
@@ -195,13 +209,11 @@
         ANGRY_MODE = document.getElementById('angryModeToggle').checked;
         ZACK_MODE = document.getElementById('zackaryModeToggle').checked;
         GAMES_ONLY = document.getElementById('gamesOnlyToggle').checked;
-        
         localStorage.setItem('POINT_LIMIT', POINT_LIMIT);
         localStorage.setItem('GAME_LIMIT', GAME_LIMIT);
         localStorage.setItem('ANGRY_MODE', ANGRY_MODE);
         localStorage.setItem('ZACK_MODE', ZACK_MODE);
         localStorage.setItem('GAMES_ONLY', GAMES_ONLY);
-        
         document.getElementById('settingsModal').style.display = 'none';
         applySettingsUI();
     }
@@ -223,10 +235,8 @@
         stats[winner].games++;
         stats[winner].streak++;
         stats[loser].streak = 0;
-        
         let isChamp = stats[winner].games >= GAME_LIMIT;
         showCelebration(document.getElementById(`name${winner}`).value, isChamp);
-        
         if(isChamp) {
             stats[winner].champs++;
             stats.A.games = 0; stats.B.games = 0;
@@ -256,7 +266,6 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     let parts = [];
-
     function animate() {
         ctx.clearRect(0,0, canvas.width, canvas.height);
         parts.forEach((p, i) => {
@@ -276,11 +285,9 @@
         const safeNames = ['connor', 'mebo'];
         const overlay = document.getElementById('overlay');
         const roast = document.getElementById('roast');
-        
         overlay.style.display = 'flex';
         document.getElementById('winMessage').textContent = isChamp ? "CHAMPIONSHIP!" : "GAME WON!";
         document.getElementById('champName').textContent = name;
-
         if (lowerName === 'zackary' && ZACK_MODE) {
             roast.textContent = isChamp ? "Larry Bird was in the Epstein files" : "Larry Bird is a bum you bum";
             roast.style.display = 'block';
@@ -293,11 +300,7 @@
             roast.textContent = "";
             let count = isChamp ? 200 : 70;
             for(let i=0; i<count; i++) {
-                parts.push({ 
-                    x: innerWidth/2, y: innerHeight/2, w: Math.random()*35+25, h: Math.random()*35+25, 
-                    c: `hsl(${Math.random()*360},70%,60%)`, vx: (Math.random()-0.5)*45, vy: (Math.random()-0.5)*40, 
-                    l: 1, wobble: Math.random()*15 
-                });
+                parts.push({ x: innerWidth/2, y: innerHeight/2, w: Math.random()*35+25, h: Math.random()*35+25, c: `hsl(${Math.random()*360},70%,60%)`, vx: (Math.random()-0.5)*45, vy: (Math.random()-0.5)*40, l: 1, wobble: Math.random()*15 });
             }
         }
         setTimeout(() => overlay.style.display = 'none', isChamp ? 4000 : 2500);
