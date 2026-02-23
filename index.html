@@ -41,7 +41,8 @@
         button { padding: 10px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; color: white; transition: 0.2s; }
         .btn-add { background: #667eea; flex: 1; }
         .btn-sub { background: #ff6b6b; width: 100%; margin-top: 10px; }
-        .btn-reset { background: #333; width: 100%; margin-top: 20px; padding: 15px; font-size: 16px; }
+        .btn-reset { background: #dc3545; width: 100%; margin-top: 20px; padding: 15px; font-size: 16px; }
+        .btn-settings { background: #2f3542; width: 100%; margin-bottom: 15px; }
 
         /* OVERLAY */
         #overlay {
@@ -50,7 +51,10 @@
             justify-content: center; align-items: center; z-index: 2000;
             color: white; pointer-events: none; text-align: center;
         }
+        #roast { font-size: 22px; color: #ff4757; font-style: italic; margin-top: 15px; font-weight: bold; }
         canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1999; }
+        
+        .settings-input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -58,4 +62,148 @@
     <div id="overlay">
         <div id="winMessage" style="font-size: 50px; font-weight: 900;">GAME WON!</div>
         <div id="champName" style="font-size: 60px; color: #fdbb2d;"></div>
-        <div id="roast" style
+        <div id="roast"></div>
+    </div>
+
+    <section id="game-container">
+        <iframe src="https://play1.coolmathgames.eu.org.cdn.cloudflare.net/iframe.html?url=/pages/other/interpreter/index.html?url=https://cdn.jsdelivr.net/gh/gn-math/html@main/66.html" width="800" height="600" style="border:none;"></iframe>
+    </section>
+
+    <div id="kb-status" onclick="activateKeys()">Keys Disabled (Click to Enable 1 & 2)</div>
+
+    <div class="container">
+        <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+            <input type="text" id="nameA" placeholder="Team A" class="settings-input">
+            <input type="text" id="nameB" placeholder="Team B" class="settings-input">
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <div class="score-card">
+                <div id="labelA" style="font-weight:bold;">Team A</div>
+                <div class="score-value" id="scoreA">0</div>
+                <div>Games: <span id="gamesA">0</span></div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <button class="btn-add" onclick="addA(1)">+1</button>
+                    <button class="btn-add" onclick="addA(2)">+2</button>
+                </div>
+            </div>
+            <div class="score-card">
+                <div id="labelB" style="font-weight:bold;">Team B</div>
+                <div class="score-value" id="scoreB">0</div>
+                <div>Games: <span id="gamesB">0</span></div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <button class="btn-add" onclick="addB(1)">+1</button>
+                    <button class="btn-add" onclick="addB(2)">+2</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-reset" onclick="fullReset()">RESET EVERYTHING</button>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+<script>
+    let POINT_LIMIT = 5;
+    let stats = { A: { score: 0, games: 0 }, B: { score: 0, games: 0 } };
+
+    window.onload = () => {
+        stats.A.score = parseInt(localStorage.getItem('tAS')) || 0;
+        stats.B.score = parseInt(localStorage.getItem('tBS')) || 0;
+        stats.A.games = parseInt(localStorage.getItem('tAG')) || 0;
+        stats.B.games = parseInt(localStorage.getItem('tBG')) || 0;
+        document.getElementById('nameA').value = localStorage.getItem('tAName') || 'Team A';
+        document.getElementById('nameB').value = localStorage.getItem('tBName') || 'Team B';
+        updateUI();
+    };
+
+    function activateKeys() {
+        window.focus();
+        document.getElementById('kb-status').classList.add('active');
+        document.getElementById('kb-status').textContent = "Keys Active (1 & 2)";
+    }
+
+    window.onkeydown = (e) => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key === "1") addA(1);
+        if (e.key === "2") addB(1);
+    };
+
+    function processPoint(winner, amt) {
+        stats[winner].score += amt;
+        if (stats[winner].score >= POINT_LIMIT) {
+            stats.A.score = 0; stats.B.score = 0;
+            stats[winner].games++;
+            showCelebration(document.getElementById(`name${winner}`).value);
+        }
+        save(); updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('scoreA').textContent = stats.A.score;
+        document.getElementById('scoreB').textContent = stats.B.score;
+        document.getElementById('gamesA').textContent = stats.A.games;
+        document.getElementById('gamesB').textContent = stats.B.games;
+        document.getElementById('labelA').textContent = document.getElementById('nameA').value || 'Team A';
+        document.getElementById('labelB').textContent = document.getElementById('nameB').value || 'Team B';
+    }
+
+    function save() {
+        localStorage.setItem('tAS', stats.A.score);
+        localStorage.setItem('tBS', stats.B.score);
+        localStorage.setItem('tAG', stats.A.games);
+        localStorage.setItem('tBG', stats.B.games);
+        localStorage.setItem('tAName', document.getElementById('nameA').value);
+        localStorage.setItem('tBName', document.getElementById('nameB').value);
+    }
+
+    function fullReset() {
+        if (confirm("Reset everything?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    function addA(n) { processPoint('A', n); }
+    function addB(n) { processPoint('B', n); }
+
+    // Confetti Logic
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let parts = [];
+    function animate() {
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        parts.forEach((p, i) => {
+            p.y += p.vy; p.x += Math.sin(p.wobble) * 2; p.wobble += 0.1;
+            p.vy += 0.2; p.l -= 0.01;
+            ctx.globalAlpha = p.l; ctx.fillStyle = p.c;
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            if(p.l <= 0) parts.splice(i, 1);
+        });
+        requestAnimationFrame(animate);
+    }
+    window.onresize = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
+    window.onresize(); animate();
+
+    function showCelebration(name) {
+        const lowerName = name.toLowerCase().trim();
+        const safeNames = ['connor', 'mebo'];
+        const isRagav = lowerName === 'ragav';
+        const overlay = document.getElementById('overlay');
+        const roast = document.getElementById('roast');
+        
+        overlay.style.display = 'flex';
+        document.getElementById('champName').textContent = name;
+        
+        if (isRagav) {
+            roast.textContent = "(your still bad cheater. don't get cocky.)";
+            for(let i=0; i<3; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: 40, h: 50, c: '#555', vy: -5, wobble: Math.random(), l: 1.5 });
+        } else {
+            roast.textContent = "";
+            for(let i=0; i<80; i++) parts.push({ x: innerWidth/2, y: innerHeight/2, w: Math.random()*30+20, h: Math.random()*30+20, c: `hsl(${Math.random()*360},70%,60%)`, vy: (Math.random()-0.5)*20, wobble: Math.random()*10, l: 1 });
+        }
+        setTimeout(() => overlay.style.display = 'none', 3000);
+    }
+</script>
+</body>
+</html>
