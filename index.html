@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score Tracker Ultra Pro - Startup Fix</title>
+    <title>Score Tracker Ultra Pro - History Edition</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -49,6 +49,15 @@
         .streak-val { color: #ff4757; font-weight: bold; font-size: 14px; margin-bottom: 5px; }
         .score-card { background: #f8f9fa; border-radius: 15px; padding: 20px; border: 2px solid #e9ecef; flex: 1; }
         .score-value { font-size: 60px; font-weight: 900; color: #667eea; }
+
+        /* HISTORY LOG STYLES */
+        .history-container {
+            margin-top: 25px; background: #f1f2f6; border-radius: 12px;
+            padding: 15px; text-align: left; max-height: 200px; overflow-y: auto;
+        }
+        .history-title { font-weight: bold; margin-bottom: 10px; color: #2f3542; border-bottom: 1px solid #ddd; }
+        .history-item { font-size: 12px; padding: 4px 0; border-bottom: 1px dashed #ccc; color: #57606f; }
+        .winner-tag { color: #2ecc71; font-weight: bold; }
 
         button { padding: 10px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; color: white; transition: 0.2s; }
         .btn-add { background: #667eea; width: 100%; font-size: 18px; margin-top: 10px; }
@@ -101,6 +110,7 @@
         <input type="number" id="setPointLimit" class="settings-input">
         <label style="font-size:12px;">Games to Win Champ:</label>
         <input type="number" id="setGameLimit" class="settings-input">
+        
         <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
             <span>Angry Mode:</span><input type="checkbox" id="angryModeToggle">
         </div>
@@ -110,6 +120,7 @@
         <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:20px;">
             <span style="font-weight: bold;">Games Only Mode:</span><input type="checkbox" id="gamesOnlyToggle">
         </div>
+        
         <button class="btn-add" style="width:100%" onclick="closeSettings()">Save & Close</button>
     </div>
 
@@ -139,7 +150,13 @@
                 <button class="btn-add" id="add-btn-B" onclick="addB()">+1 Point</button>
             </div>
         </div>
-        <button class="btn-reset" onclick="fullReset()">Reset</button>
+
+        <div class="history-container">
+            <div class="history-title">📜 Match History Log</div>
+            <div id="history-log"></div>
+        </div>
+
+        <button class="btn-reset" onclick="fullReset()">Reset Match & History</button>
     </div>
 
     <canvas id="canvas"></canvas>
@@ -161,11 +178,9 @@
     let currentGameIndex = 0;
 
     window.onload = () => {
-        // Force load first game
         document.getElementById('game-iframe').src = gamesList[0].url;
         document.getElementById('game-title').textContent = gamesList[0].title;
         
-        // Load settings
         document.getElementById('setPointLimit').value = POINT_LIMIT;
         document.getElementById('setGameLimit').value = GAME_LIMIT;
         document.getElementById('angryModeToggle').checked = ANGRY_MODE;
@@ -226,6 +241,24 @@
         applySettingsUI();
     }
 
+    // --- LOGGING LOGIC ---
+    function logMatch(winner, type) {
+        const log = document.getElementById('history-log');
+        const winnerName = document.getElementById(`name${winner}`).value || `Team ${winner}`;
+        const gameName = gamesList[currentGameIndex].title;
+        const entry = document.createElement('div');
+        entry.className = 'history-item';
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        if(type === 'champ') {
+            entry.innerHTML = `[${time}] 👑 <span class="winner-tag">${winnerName}</span> won the <strong>CHAMPIONSHIP</strong> in ${gameName}!`;
+        } else {
+            entry.innerHTML = `[${time}] 🏀 <span class="winner-tag">${winnerName}</span> won a game in ${gameName}.`;
+        }
+        
+        log.prepend(entry);
+    }
+
     function processPoint(winner, loser) {
         if (GAMES_ONLY) {
             handleGameWin(winner, loser);
@@ -243,8 +276,11 @@
         stats[winner].games++;
         stats[winner].streak++;
         stats[loser].streak = 0;
+        
         let isChamp = stats[winner].games >= GAME_LIMIT;
+        logMatch(winner, isChamp ? 'champ' : 'game');
         showCelebration(document.getElementById(`name${winner}`).value, isChamp);
+        
         if(isChamp) {
             stats[winner].champs++;
             stats.A.games = 0; stats.B.games = 0;
@@ -262,8 +298,9 @@
     }
 
     function fullReset() {
-        if(confirm("Reset everything?")) {
+        if(confirm("Reset all data and match history?")) {
             stats = { A: { score: 0, games: 0, streak: 0, champs: 0 }, B: { score: 0, games: 0, streak: 0, champs: 0 } };
+            document.getElementById('history-log').innerHTML = '';
             updateUI();
         }
     }
